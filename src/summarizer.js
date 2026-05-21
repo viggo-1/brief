@@ -57,23 +57,40 @@ Strictly adhere to the following rules:
 
   console.log('Sender data til Gemini API...');
   
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: [
-      {
-        role: 'user',
-        parts: [
+  let response;
+  const maxRetries = 3;
+  let delayMs = 5000;
+  
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [
           {
-            text: `Here are today's newsletters:\n\n${combinedContent}\n\nPlease generate the consolidated Daily Briefing document.`
+            role: 'user',
+            parts: [
+              {
+                text: `Here are today's newsletters:\n\n${combinedContent}\n\nPlease generate the consolidated Daily Briefing document.`
+              }
+            ]
           }
-        ]
+        ],
+        config: {
+          systemInstruction: systemInstruction,
+          temperature: 0.2, // Lavere temp for mere præcis og konsistent formatering
+        }
+      });
+      break; // Succes!
+    } catch (error) {
+      console.warn(`[GEMINI ADVARSEL] Forsøg ${i + 1} af ${maxRetries} fejlede:`, error.message);
+      if (i === maxRetries - 1) {
+        throw error; // Kast fejlen hvis sidste forsøg fejler
       }
-    ],
-    config: {
-      systemInstruction: systemInstruction,
-      temperature: 0.2, // Lavere temp for mere præcis og konsistent formatering
+      console.log(`Venter ${delayMs / 1000} sekunder før næste forsøg...`);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+      delayMs *= 2; // Eksponentiel backoff
     }
-  });
+  }
 
   const briefing = response.text;
   console.log('[SUCCESS] Opsummering genereret fejlfrit af Gemini!');
