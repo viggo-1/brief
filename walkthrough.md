@@ -31,17 +31,27 @@ Jeg har oprettet og aktiveret en **Antigravity Planlagt Opgave (Cron)**, som ork
 
 ## 📱 Sådan lytter du på din iPhone (Apple Podcasts)
 
-Dagens test-episode er allerede uploadet og live! Du kan tilføje podcasten til din iPhone med det samme:
+Dagens test-episoder for begge podcasts er konverteret til M4A og ligger klar! Du kan tilføje dem uafhængigt til din iPhone:
 
-1. Åbn **Apple Podcasts**-appen på din iPhone.
-2. Gå til fanen **Bibliotek** (Library) i bunden.
-3. Tryk på de tre prikker `...` i øverste højre hjørne.
-4. Vælg **"Tilføj en podcast via URL..."** (Add a Podcast by URL...).
-5. Indtast din personlige offentlige RSS-URL:
+### Podcast 1: Executive Briefing (Tech & Strategy)
+Dybdegående, højt begavet strategisk analyse baseret på Techmeme, SemiAnalysis, Stratechery og Import AI.
+1. Åbn **Apple Podcasts**-appen.
+2. Gå til **Bibliotek** (Library) -> Tryk på de tre prikker `...` øverst til højre.
+3. Vælg **"Tilføj en podcast via URL..."** (Add a Podcast by URL...).
+4. Indtast din personlige Executive RSS-URL:
    `https://viggo-1.github.io/brief/podcast/podcast.xml`
-6. Tryk på **Abonner** (Subscribe).
+5. Tryk på **Abonner** (Subscribe).
 
-**Færdig!** Apple Podcasts vil nu automatisk hente dagens episode og hente nye episoder hver eneste morgen, så snart Antigravity-rutinen har kørt kl. 06:30.
+### Podcast 2: TLDR Speed-Brief (Daily Digest)
+Koncis, hurtig og punktbaseret gennemgang af hele tech- og AI-nyhedsbilledet fra de rå TLDR nyhedsbreve.
+1. Åbn **Apple Podcasts**-appen.
+2. Gå til **Bibliotek** (Library) -> Tryk på de tre prikker `...` øverst til højre.
+3. Vælg **"Tilføj en podcast via URL..."** (Add a Podcast by URL...).
+4. Indtast din personlige TLDR RSS-URL:
+   `https://viggo-1.github.io/brief/podcast/tldr_podcast.xml`
+5. Tryk på **Abonner** (Subscribe).
+
+**Færdig!** Begge kanaler opdateres automatisk og uafhængigt af hinanden hver morgen kl. 06:30!
 
 ---
 
