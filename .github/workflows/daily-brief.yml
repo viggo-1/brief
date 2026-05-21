@@ -31,11 +31,11 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Restore Auth Files
+        env:
+          AUTH_STATE_JSON: ${{ secrets.AUTH_STATE_JSON }}
         run: |
-          echo "${{ secrets.AUTH_STATE_JSON }}" > auth_state.json
-          echo "${{ secrets.TOKEN_JSON }}" > token.json
-          # Sikr dig at credentials.json også kan oprettes hvis påkrævet (bruges af gmail.js)
-          echo '{"web":{"client_id":"${{ secrets.GMAIL_CLIENT_ID }}","client_secret":"${{ secrets.GMAIL_CLIENT_SECRET }}","redirect_uris":["http://localhost:3000/oauth2callback"]}}' > credentials.json
+          echo "$AUTH_STATE_JSON" > auth_state.json
+
 
       - name: Run Daily Brief Agent
         env:
