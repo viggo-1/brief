@@ -1,0 +1,19 @@
+{
+  "name": "brief",
+  "version": "1.0.0",
+  "description": "Personalized daily news podcast generator via Gmail and NotebookLM",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "auth-setup": "node scripts/auth-setup.js"
+  },
+  "dependencies": {
+    "@google/genai": "^2.5.0",
+    "dotenv": "^16.4.5",
+    "googleapis": "^140.0.1",
+    "playwright": "^1.45.0"
+  },
+  "author": "",
+  "license": "ISC"
+}

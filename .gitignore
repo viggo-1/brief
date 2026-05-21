@@ -1,0 +1,9 @@
+node_modules/
+.env
+auth_state.json
+token.json
+credentials.json
+*.mp3
+*.wav
+output/
+dist/
