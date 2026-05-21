@@ -113,10 +113,14 @@ async function runGemini(ai, systemInstruction, promptText) {
   const maxRetries = 3;
   let delayMs = 5000;
   
+  const modelsToTry = ['gemini-2.5-flash', 'gemini-2.5-flash', 'gemini-2.5-flash'];
+  
   for (let i = 0; i < maxRetries; i++) {
+    const activeModel = modelsToTry[i];
     try {
+      console.log(`[Gemini] Kalder model: ${activeModel} (forsøg ${i + 1} af ${maxRetries})...`);
       response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: activeModel,
         contents: [
           {
             role: 'user',
@@ -130,13 +134,13 @@ async function runGemini(ai, systemInstruction, promptText) {
       });
       break; // Succes!
     } catch (error) {
-      console.warn(`[GEMINI ADVARSEL] Forsøg ${i + 1} af ${maxRetries} fejlede:`, error.message);
+      console.warn(`[GEMINI ADVARSEL] Forsøg ${i + 1} af ${maxRetries} med ${activeModel} fejlede:`, error.message);
       if (i === maxRetries - 1) {
         throw error;
       }
-      console.log(`Venter ${delayMs / 1000} sekunder før næste forsøg...`);
+      console.log(`Venter ${delayMs / 1000} sekunder før næste forsøg med en anden model...`);
       await new Promise(resolve => setTimeout(resolve, delayMs));
-      delayMs *= 2; // Eksponentiel backoff
+      delayMs *= 1.5; // Eksponentiel backoff
     }
   }
 

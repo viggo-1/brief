@@ -52,12 +52,47 @@ export async function generatePodcast(briefingText, dateString) {
   try {
     console.log('Navigerer til NotebookLM...');
     await page.goto('https://notebooklm.google.com/', { waitUntil: 'domcontentloaded' });
+
+    // Vent på at enten Dashboardet (New notebook knap) eller Login-siden indlæses
+    console.log('[NotebookLM] Venter på at dashboardet eller login-siden indlæses...');
+    const dashboardSelector = page.locator('text=/New notebook|Create notebook|Opret/i').first();
+    const loginPageSelector = page.locator('[data-email="viggoebbesen@gmail.com"], text="viggoebbesen@gmail.com", text="Sign in", button:has-text("Sign in")').first();
+    
+    await Promise.any([
+      dashboardSelector.waitFor({ state: 'visible', timeout: 15000 }),
+      loginPageSelector.waitFor({ state: 'visible', timeout: 15000 })
+    ]).catch(() => console.log('[NotebookLM] Timeout ventende på dashboard/login. Fortsætter...'));
+
     await saveDebugScreenshot(page, '01_homepage');
+
+    // Tjek om vi blev omdirigeret til Google accounts login-side
+    let currentUrl = page.url();
+    if (currentUrl.includes('accounts.google.com') || await page.locator('text="Vælg en konto"').isVisible().catch(() => false)) {
+      console.log('[NotebookLM] Omdirigeret til Google login-side. Forsøger automatisk login...');
+      try {
+        await accountSelector.waitFor({ state: 'visible', timeout: 5000 });
+      } catch (e) {}
+      if (await accountSelector.isVisible()) {
+        console.log('[NotebookLM] Fandt konto-kort for viggoebbesen@gmail.com! Klikker på det...');
+        await accountSelector.click();
+        await page.waitForTimeout(5000);
+        await saveDebugScreenshot(page, 'after_account_click');
+        
+        currentUrl = page.url();
+        if (currentUrl.includes('notebooklm.google.com')) {
+          console.log('[NotebookLM] Login lykkedes automatisk via konto-kort!');
+        } else {
+          throw new Error('Google-sessionen er udløbet og kræver manuel indtastning af password eller 2FA. Venligst kør "npm run auth-setup" i din terminal.');
+        }
+      } else {
+        throw new Error('Google-sessionen i auth_state.json er udløbet. Venligst kør "npm run auth-setup" i din terminal.');
+      }
+    }
 
     // Tjek om vi er logget ind (hvis login-knap findes, er sessionen udløbet)
     const loginButton = await page.locator('text=Sign in').first().isVisible().catch(() => false);
     if (loginButton) {
-      throw new Error('Google-sessionen i auth_state.json er udløbet eller ugyldig. Kør venligst "npm run auth-setup" igen for at forny dit login.');
+      throw new Error('Google-sessionen i auth_state.json er udløbet eller ugyldig. Venligst kør "npm run auth-setup" i din terminal.');
     }
 
     console.log('Opretter ny notesbog...');
@@ -169,8 +204,8 @@ export async function generatePodcast(briefingText, dateString) {
     await saveDebugScreenshot(page, '07_generation_started');
 
     // Vi laver en løkke, der venter på, at genereringen færdiggøres.
-    // Vi tjekker hvert 15. sekund i op til 15 minutter.
-    const maxWaitTimeMs = 15 * 60 * 1000; // 15 minutter
+    // Vi tjekker hvert 15. sekund i op til 25 minutter.
+    const maxWaitTimeMs = 25 * 60 * 1000; // 25 minutter
     const checkIntervalMs = 15000; // 15 sekunder
     let elapsed = 0;
     let isDone = false;
@@ -234,6 +269,10 @@ export async function generatePodcast(briefingText, dateString) {
     await download.saveAs(downloadPath);
     console.log(`[SUCCESS] Lydfilen er gemt på: ${downloadPath}`);
     await saveDebugScreenshot(page, '09_download_complete');
+
+    // Gem den opdaterede storageState, så vi bevarer roterede cookies og undgår logout i efterfølgende kørsel
+    await context.storageState({ path: AUTH_STATE_PATH });
+    console.log('[NotebookLM] Opdateret Google session state gemt.');
 
     // Vi returnerer stien til den downloadede fil
     return downloadPath;

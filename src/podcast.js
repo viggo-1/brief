@@ -108,6 +108,9 @@ export async function addEpisodeToPodcast(tempAudioPath, dateString, type = 'exe
       <itunes:duration>${type === 'tldr' ? '02:30' : '05:00'}</itunes:duration>
     </item>`;
 
+  const coverFilename = type === 'tldr' ? 'tldr_cover.png' : 'executive_cover.png';
+  const coverUrl = `${baseSiteUrl}podcast/${coverFilename}`;
+
   let rssContent = '';
 
   if (fs.existsSync(rssPath)) {
@@ -127,12 +130,12 @@ export async function addEpisodeToPodcast(tempAudioPath, dateString, type = 'exe
         rssContent = existingContent.slice(0, channelEndIndex) + '  ' + newEpisodeItem + '\n  ' + existingContent.slice(channelEndIndex);
       } else {
         // Hvis XML er korrupt, generer et nyt
-        rssContent = generateNewRss(title, description, baseSiteUrl, author, newEpisodeItem);
+        rssContent = generateNewRss(title, description, baseSiteUrl, author, newEpisodeItem, coverUrl);
       }
     }
   } else {
     console.log(`Opretter et helt nyt RSS-feed på ${rssFilename}...`);
-    rssContent = generateNewRss(title, description, baseSiteUrl, author, newEpisodeItem);
+    rssContent = generateNewRss(title, description, baseSiteUrl, author, newEpisodeItem, coverUrl);
   }
 
   // Gem det opdaterede RSS-feed
@@ -143,7 +146,8 @@ export async function addEpisodeToPodcast(tempAudioPath, dateString, type = 'exe
 /**
  * Genererer en helt ny podcast.xml struktur
  */
-function generateNewRss(title, description, baseSiteUrl, author, episodeItem) {
+function generateNewRss(title, description, baseSiteUrl, author, episodeItem, coverUrl) {
+  const finalCoverUrl = coverUrl || 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=1400&amp;h=1400&amp;fit=crop';
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" 
      xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" 
@@ -162,7 +166,7 @@ function generateNewRss(title, description, baseSiteUrl, author, episodeItem) {
     </itunes:owner>
     <itunes:category text="Technology" />
     <itunes:explicit>no</itunes:explicit>
-    <itunes:image href="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=1400&amp;h=1400&amp;fit=crop" />
+    <itunes:image href="${finalCoverUrl}" />
     
 ${episodeItem}
 
