@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
-import { fetchNewsletters } from './gmail.js';
+import { fetchPublicTLDR } from './tldr-scraper.js';
 import { generateBriefing } from './summarizer.js';
 import { generatePodcast } from './notebooklm.js';
 import { addEpisodeToPodcast } from './podcast.js';
@@ -29,12 +29,30 @@ async function main() {
   console.log('--------------------------------------------------\n');
 
   try {
-    // 1. Hent nyhedsbreve fra Gmail
-    console.log('[TRIN 1] Henter TLDR nyhedsbreve fra de seneste 24 timer...');
-    const newsletters = await fetchNewsletters('subject:"TLDR"');
+    // 1. Hent nyhedsbreve fra de offentlige TLDR arkiver
+    // Dette omgår Gmail OAuth / credentials opsætning fuldstændigt!
+    console.log('[TRIN 1] Henter TLDR Tech & TLDR AI nyhedsbreve fra arkiverne...');
+    
+    const newsletters = [];
+    
+    try {
+      console.log('Henter TLDR Tech...');
+      const techNL = await fetchPublicTLDR('tech');
+      newsletters.push(techNL);
+    } catch (e) {
+      console.warn('Kunne ikke hente TLDR Tech:', e.message);
+    }
+    
+    try {
+      console.log('Henter TLDR AI...');
+      const aiNL = await fetchPublicTLDR('ai');
+      newsletters.push(aiNL);
+    } catch (e) {
+      console.warn('Kunne ikke hente TLDR AI:', e.message);
+    }
     
     if (newsletters.length === 0) {
-      console.log('\n[INFO] Der blev ikke fundet nogen nye TLDR nyhedsbreve inden for de seneste 24 timer.');
+      console.log('\n[INFO] Der blev ikke fundet nogen nyhedsbreve.');
       console.log('Afbryder processen yndefuldt da der ikke er nyt indhold at omdanne til podcast.');
       console.log('\n==================================================');
       console.log('           Daily Brief Agent Afsluttet            ');
@@ -42,7 +60,7 @@ async function main() {
       return;
     }
 
-    console.log(`[INFO] Hentet ${newsletters.length} nyhedsbrev(e) med succes.\n`);
+    console.log(`[INFO] Hentet ${newsletters.length} nyhedsbrev(e) med succes fra arkiverne.\n`);
 
     // 2. Generer briefing med Gemini
     console.log('[TRIN 2] Konsoliderer og opsummerer nyheder via Gemini...');

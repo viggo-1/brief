@@ -7,3 +7,4 @@ credentials.json
 *.wav
 output/
 dist/
+.DS_Store
