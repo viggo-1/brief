@@ -5,8 +5,10 @@ token.json
 credentials.json
 *.mp3
 *.wav
+*.m4a
 !podcast/audio/*.wav
 !podcast/audio/*.mp3
+!podcast/audio/*.m4a
 output/
 dist/
 .DS_Store

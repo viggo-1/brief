@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
+import { execSync } from 'child_process';
 
 dotenv.config();
 
@@ -27,17 +28,48 @@ export async function addEpisodeToPodcast(tempAudioPath, dateString) {
     throw new Error(`Kilde lydfilen blev ikke fundet på: ${tempAudioPath}`);
   }
 
-  // Find filtype (.wav eller .mp3)
-  const ext = path.extname(tempAudioPath) || '.wav';
-  const mimeType = ext === '.mp3' ? 'audio/mpeg' : 'audio/wav';
-  
-  // Destination sti i podcast/audio/ mappen
-  const finalFilename = `briefing-${dateString}${ext}`;
-  const finalAudioPath = path.join(AUDIO_DIR, finalFilename);
+  const ext = path.extname(tempAudioPath).toLowerCase();
+  let finalAudioPath = '';
+  let finalFilename = '';
+  let mimeType = '';
 
-  // Kopier filen til den offentlige podcast mappe
-  fs.copyFileSync(tempAudioPath, finalAudioPath);
-  console.log(`[Podcast] Lydfil kopieret til: ${finalAudioPath}`);
+  if (ext === '.wav') {
+    // Vi vil konvertere .wav til .m4a (AAC) for at sikre fuld understøttelse af streaming i Apple Podcasts på iOS
+    finalFilename = `briefing-${dateString}.m4a`;
+    finalAudioPath = path.join(AUDIO_DIR, finalFilename);
+    mimeType = 'audio/x-m4a';
+
+    console.log(`[Podcast] Konverterer ${tempAudioPath} til M4A (AAC) via afconvert...`);
+    try {
+      // afconvert syntax: afconvert -f m4af -d aac -b 128000 -q 127 src.wav dest.m4a
+      // -f m4af = MPEG-4 Audio File Format
+      // -d aac = AAC format
+      // -b 128000 = 128 kbps bitrate (fremragende balance mellem lydkvalitet og lille filstørrelse)
+      // -q 127 = Højeste codec-kvalitet
+      const cmd = `/usr/bin/afconvert -f m4af -d aac -b 128000 -q 127 "${tempAudioPath}" "${finalAudioPath}"`;
+      console.log(`Afvikler: ${cmd}`);
+      execSync(cmd);
+      console.log(`[Podcast] Lydfil succesfuldt konverteret og gemt på: ${finalAudioPath}`);
+    } catch (err) {
+      console.error('[Podcast] Fejl under afconvert konvertering. Falder tilbage til .wav-fil:', err);
+      // Fallback: Kopier original .wav hvis afconvert mod forventning fejler
+      const fallbackFilename = `briefing-${dateString}.wav`;
+      const fallbackAudioPath = path.join(AUDIO_DIR, fallbackFilename);
+      fs.copyFileSync(tempAudioPath, fallbackAudioPath);
+      finalFilename = fallbackFilename;
+      finalAudioPath = fallbackAudioPath;
+      mimeType = 'audio/wav';
+    }
+  } else {
+    // Hvis filen allerede er f.eks. .mp3
+    const finalExt = ext || '.mp3';
+    finalFilename = `briefing-${dateString}${finalExt}`;
+    finalAudioPath = path.join(AUDIO_DIR, finalFilename);
+    mimeType = finalExt === '.mp3' ? 'audio/mpeg' : 'audio/wav';
+    
+    fs.copyFileSync(tempAudioPath, finalAudioPath);
+    console.log(`[Podcast] Lydfil kopieret uden konvertering til: ${finalAudioPath}`);
+  }
 
   // Få filstørrelse i bytes (kræves af podcast RSS standarden)
   const stats = fs.statSync(finalAudioPath);
