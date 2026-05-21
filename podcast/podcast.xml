@@ -3,7 +3,7 @@
      xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" 
      xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>Executive Briefing: Tech & Strategy</title>
+    <title>Executive Briefing: Tech &amp; Strategy</title>
     <link>https://viggo-1.github.io/brief/</link>
     <language>en-us</language>
     <copyright>Copyright 2026 Viggo</copyright>

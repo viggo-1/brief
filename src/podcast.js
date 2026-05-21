@@ -79,7 +79,7 @@ export async function addEpisodeToPodcast(tempAudioPath, dateString, type = 'exe
   const rssPath = path.join(PODCAST_DIR, rssFilename);
 
   // Metadata standardværdier
-  const defaultTitle = type === 'tldr' ? 'TLDR Speed-Brief: Daily Digest' : 'Executive Briefing: Tech & Strategy';
+  const defaultTitle = type === 'tldr' ? 'TLDR Speed-Brief: Daily Digest' : 'Executive Briefing: Tech &amp; Strategy';
   const defaultDesc = type === 'tldr'
     ? 'Snappy daily run-through of the general technology and AI landscape, curated from TLDR newsletters.'
     : 'Elite strategic technology and macro-infrastructure briefing for executives.';
