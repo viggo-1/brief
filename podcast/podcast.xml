@@ -3,13 +3,13 @@
      xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" 
      xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>Briefing - Viggo</title>
+    <title>Executive Briefing: Tech & Strategy</title>
     <link>https://viggo-1.github.io/brief/</link>
     <language>en-us</language>
     <copyright>Copyright 2026 Viggo</copyright>
     <itunes:author>Viggo</itunes:author>
-    <itunes:summary>Personalized daily podcast generated from TLDR newsletters</itunes:summary>
-    <description>Personalized daily podcast generated from TLDR newsletters</description>
+    <itunes:summary>Elite strategic technology and macro-infrastructure briefing for executives.</itunes:summary>
+    <description>Elite strategic technology and macro-infrastructure briefing for executives.</description>
     <itunes:owner>
       <itunes:name>Viggo</itunes:name>
       <itunes:email>brief-podcast@example.com</itunes:email>

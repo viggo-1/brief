@@ -7,7 +7,6 @@ dotenv.config();
 
 const PODCAST_DIR = path.join(process.cwd(), 'podcast');
 const AUDIO_DIR = path.join(PODCAST_DIR, 'audio');
-const RSS_PATH = path.join(PODCAST_DIR, 'podcast.xml');
 
 // Opret mapper hvis de ikke findes
 if (!fs.existsSync(PODCAST_DIR)) {
@@ -18,12 +17,13 @@ if (!fs.existsSync(AUDIO_DIR)) {
 }
 
 /**
- * Registrerer den nye lydfil i podcast.xml RSS-feedet
+ * Registrerer den nye lydfil i det relevante RSS-feed
  * @param {string} tempAudioPath Stien til den downloadede midlertidige lydfil
  * @param {string} dateString Datoen for briefingen (f.eks. '2026-05-21')
+ * @param {string} type Type af podcast ('executive' eller 'tldr')
  * @returns {Promise<void>}
  */
-export async function addEpisodeToPodcast(tempAudioPath, dateString) {
+export async function addEpisodeToPodcast(tempAudioPath, dateString, type = 'executive') {
   if (!fs.existsSync(tempAudioPath)) {
     throw new Error(`Kilde lydfilen blev ikke fundet på: ${tempAudioPath}`);
   }
@@ -32,28 +32,27 @@ export async function addEpisodeToPodcast(tempAudioPath, dateString) {
   let finalAudioPath = '';
   let finalFilename = '';
   let mimeType = '';
+  
+  // Bestem filnavn-prefix baseret på podcast-type
+  const prefix = type === 'tldr' ? 'tldr-briefing' : 'briefing';
 
   if (ext === '.wav') {
     // Vi vil konvertere .wav til .m4a (AAC) for at sikre fuld understøttelse af streaming i Apple Podcasts på iOS
-    finalFilename = `briefing-${dateString}.m4a`;
+    finalFilename = `${prefix}-${dateString}.m4a`;
     finalAudioPath = path.join(AUDIO_DIR, finalFilename);
     mimeType = 'audio/x-m4a';
 
-    console.log(`[Podcast] Konverterer ${tempAudioPath} til M4A (AAC) via afconvert...`);
+    console.log(`[Podcast - ${type.toUpperCase()}] Konverterer ${tempAudioPath} til M4A (AAC) via afconvert...`);
     try {
-      // afconvert syntax: afconvert -f m4af -d aac -b 128000 -q 127 src.wav dest.m4a
-      // -f m4af = MPEG-4 Audio File Format
-      // -d aac = AAC format
-      // -b 128000 = 128 kbps bitrate (fremragende balance mellem lydkvalitet og lille filstørrelse)
-      // -q 127 = Højeste codec-kvalitet
+      // afconvert: AAC at 128 kbps, highest quality (-q 127)
       const cmd = `/usr/bin/afconvert -f m4af -d aac -b 128000 -q 127 "${tempAudioPath}" "${finalAudioPath}"`;
-      console.log(`Afvikler: ${cmd}`);
+      console.log(`[Podcast - ${type.toUpperCase()}] Afvikler: ${cmd}`);
       execSync(cmd);
-      console.log(`[Podcast] Lydfil succesfuldt konverteret og gemt på: ${finalAudioPath}`);
+      console.log(`[Podcast - ${type.toUpperCase()}] Lydfil succesfuldt konverteret og gemt på: ${finalAudioPath}`);
     } catch (err) {
-      console.error('[Podcast] Fejl under afconvert konvertering. Falder tilbage til .wav-fil:', err);
-      // Fallback: Kopier original .wav hvis afconvert mod forventning fejler
-      const fallbackFilename = `briefing-${dateString}.wav`;
+      console.error(`[Podcast - ${type.toUpperCase()}] Fejl under afconvert konvertering. Falder tilbage til .wav-fil:`, err);
+      // Fallback: Kopier original .wav
+      const fallbackFilename = `${prefix}-${dateString}.wav`;
       const fallbackAudioPath = path.join(AUDIO_DIR, fallbackFilename);
       fs.copyFileSync(tempAudioPath, fallbackAudioPath);
       finalFilename = fallbackFilename;
@@ -63,55 +62,63 @@ export async function addEpisodeToPodcast(tempAudioPath, dateString) {
   } else {
     // Hvis filen allerede er f.eks. .mp3
     const finalExt = ext || '.mp3';
-    finalFilename = `briefing-${dateString}${finalExt}`;
+    finalFilename = `${prefix}-${dateString}${finalExt}`;
     finalAudioPath = path.join(AUDIO_DIR, finalFilename);
     mimeType = finalExt === '.mp3' ? 'audio/mpeg' : 'audio/wav';
     
     fs.copyFileSync(tempAudioPath, finalAudioPath);
-    console.log(`[Podcast] Lydfil kopieret uden konvertering til: ${finalAudioPath}`);
+    console.log(`[Podcast - ${type.toUpperCase()}] Lydfil kopieret uden konvertering til: ${finalAudioPath}`);
   }
 
   // Få filstørrelse i bytes (kræves af podcast RSS standarden)
   const stats = fs.statSync(finalAudioPath);
   const fileSizeInBytes = stats.size;
 
-  // Læs konfiguration
-  const title = process.env.PODCAST_TITLE || 'My Daily Brief';
-  const description = process.env.PODCAST_DESCRIPTION || 'Personalized daily podcast generated from my newsletters';
+  // Bestem RSS sti og konfigurér metadata
+  const rssFilename = type === 'tldr' ? 'tldr_podcast.xml' : 'podcast.xml';
+  const rssPath = path.join(PODCAST_DIR, rssFilename);
+
+  // Metadata standardværdier
+  const defaultTitle = type === 'tldr' ? 'TLDR Speed-Brief: Daily Digest' : 'Executive Briefing: Tech & Strategy';
+  const defaultDesc = type === 'tldr'
+    ? 'Snappy daily run-through of the general technology and AI landscape, curated from TLDR newsletters.'
+    : 'Elite strategic technology and macro-infrastructure briefing for executives.';
+
+  const title = (type === 'tldr' ? process.env.TLDR_PODCAST_TITLE : process.env.PODCAST_TITLE) || defaultTitle;
+  const description = (type === 'tldr' ? process.env.TLDR_PODCAST_DESCRIPTION : process.env.PODCAST_DESCRIPTION) || defaultDesc;
   const author = process.env.PODCAST_AUTHOR || 'Viggo';
   const siteUrl = process.env.PODCAST_SITE_URL || 'https://your-username.github.io/brief/';
   
-  // Sørg for at siteUrl har en skråstreg i enden
   const baseSiteUrl = siteUrl.endsWith('/') ? siteUrl : `${siteUrl}/`;
   const audioFileUrl = `${baseSiteUrl}podcast/audio/${finalFilename}`;
 
   // Formater udgivelsesdato til RFC 822 format (f.eks. "Thu, 21 May 2026 06:00:00 GMT")
   const pubDate = new Date().toUTCString();
-  const guid = `brief-${dateString}-${Math.random().toString(36).substr(2, 9)}`;
+  const guid = `brief-${type}-${dateString}-${Math.random().toString(36).substr(2, 9)}`;
 
   // Opret det nye podcast-element (episode)
   const newEpisodeItem = `    <item>
-      <title>Daily Briefing - ${dateString}</title>
-      <description>Your personalized daily tech and business news briefing, curated from your newsletters and generated by NotebookLM.</description>
+      <title>${type === 'tldr' ? 'TLDR Speed-Brief' : 'Executive Briefing'} - ${dateString}</title>
+      <description>${description}</description>
       <pubDate>${pubDate}</pubDate>
       <enclosure url="${audioFileUrl}" length="${fileSizeInBytes}" type="${mimeType}" />
       <guid isPermaLink="false">${guid}</guid>
       <itunes:author>${author}</itunes:author>
-      <itunes:summary>Your personalized daily tech and business news briefing, curated from your newsletters.</itunes:summary>
-      <itunes:duration>05:00</itunes:duration>
+      <itunes:summary>${description}</itunes:summary>
+      <itunes:duration>${type === 'tldr' ? '02:30' : '05:00'}</itunes:duration>
     </item>`;
 
   let rssContent = '';
 
-  if (fs.existsSync(RSS_PATH)) {
-    console.log('Opdaterer eksisterende podcast.xml...');
-    const existingContent = fs.readFileSync(RSS_PATH, 'utf8');
+  if (fs.existsSync(rssPath)) {
+    console.log(`Opdaterer eksisterende RSS-feed på ${rssFilename}...`);
+    const existingContent = fs.readFileSync(rssPath, 'utf8');
 
-    // Vi finder stedet lige efter <channel> tagget og eventuelt metadata, før det første <item>
+    // Vi finder stedet lige efter det første <item>
     const itemIndex = existingContent.indexOf('<item>');
     
     if (itemIndex !== -1) {
-      // Indsæt den nye episode før de eksisterende episoder
+      // Indsæt den nye episode før de eksisterende episoder for at holde det nyeste øverst
       rssContent = existingContent.slice(0, itemIndex) + newEpisodeItem + '\n\n' + existingContent.slice(itemIndex);
     } else {
       // Hvis der ikke er nogen episoder endnu, indsæt før </channel>
@@ -124,13 +131,13 @@ export async function addEpisodeToPodcast(tempAudioPath, dateString) {
       }
     }
   } else {
-    console.log('Opretter et helt nyt podcast.xml...');
+    console.log(`Opretter et helt nyt RSS-feed på ${rssFilename}...`);
     rssContent = generateNewRss(title, description, baseSiteUrl, author, newEpisodeItem);
   }
 
   // Gem det opdaterede RSS-feed
-  fs.writeFileSync(RSS_PATH, rssContent, 'utf8');
-  console.log(`[SUCCESS] Podcast RSS feed opdateret på: ${RSS_PATH}`);
+  fs.writeFileSync(rssPath, rssContent, 'utf8');
+  console.log(`[SUCCESS] Podcast RSS-feed opdateret på: ${rssPath}`);
 }
 
 /**
