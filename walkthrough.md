@@ -1,64 +1,83 @@
-# Walkthrough & Setup Guide - Brief: Daily News Podcast
+# Walkthrough & Statusrapport - Brief: Dual-Podcast System
 
-Dette projekt er nu **fuldt implementeret, testet og automatiseret** direkte på din Mac i mappen `/Users/viggo/Desktop/code/brief`.
-
-I stedet for en kompleks opsætning i skyen, kører løsningen som et intelligent, lokalt **AI-agent-flow** orkestreret af Antigravity. Hver morgen scraper agenten de nyeste teknologi- og AI-nyheder, opsummerer dem via Gemini med et ultra-præcist executive vidensniveau, uploader dem til NotebookLM for at generere en 2-værts podcast, konverterer lydfilen til streambar **M4A (AAC)**, og skubber resultatet op til din GitHub Pages, så du kan lytte fejlfrit i **Apple Podcasts** på din iPhone!
+Begge dine podcasts – **Executive Briefing** og **TLDR Speed-Brief** – er nu **100% succesfuldt genereret, konverteret og udgivet** live via GitHub Pages til din iPhone!
 
 ---
 
-## 📁 Projektstruktur & Filer
+## 📊 Aktuel Status (21. maj 2026)
 
-De vigtigste komponenter i dit projekt er:
+Alle processer er gennemført fejlfrit, og alle ændringer er skubbet (pushet) til din GitHub-repo. 
 
-1. **src/notebooklm.js**: Browser-agenten, der genindlæser din Google-session, uploader briefingen til NotebookLM, genererer den to-værts podcast og downloader lydfilen som en højopløselig `.wav` via den opdaterede tre-punkts dropdown-menu (`.artifact-more-button`).
-2. **src/tldr-scraper.js**: Scraperen, der henter de nyeste udgaver af TLDR Tech og TLDR AI direkte fra de offentlige arkiver (hvilket fuldstændig fjerner behovet for komplekse Gmail API-nøgler og godkendelser!).
-3. **src/summarizer.js**: Gemini-agenten (`gemini-2.5-flash`), der konsoliderer og strukturerer nyhederne til en ultra-præcis, højt begavet executive-briefing optimeret til NotebookLM. Den antager fuld forhåndsviden og undgår banale forklaringer, hvilket tvinger NotebookLM-værterne til at tale på et strategisk CEO/CTO-niveau.
-4. **src/podcast.js**: Konverterer automatisk `.wav` filerne til streambare `.m4a` (AAC ved 128kbps) via macOS afconvert, og opdaterer `podcast.xml` (RSS-feedet) med **100% historisk bevarelse** af alle tidligere episoder.
-5. **scripts/auth-refresh.js**: Vores semi-automatiserede fornyer, som lader dig forny din Google-session med ét enkelt klik på skærmen uden at bruge terminalen.
-6. **podcast/podcast.xml**: RSS-feedet, som indlæses af Apple Podcasts (nu med streambare `.m4a` referencer).
-7. **podcast/audio/**: Mappen, hvor alle dine historiske lydfiler bevares som streambare `.m4a` filer.
+### 1. 🎙️ Executive Briefing: Tech & Strategy
+* **Lydfil:** `podcast/audio/briefing-2026-05-21.m4a` (AAC, 128 kbps, streambar)
+* **RSS Feed:** `https://viggo-1.github.io/brief/podcast/podcast.xml`
+* **Cover Art:** `https://viggo-1.github.io/brief/podcast/executive_cover.png` (Premium mørkt/blåt CEO-tema)
+* **Status:** **Online & Klar**
 
----
+### 2. ⚡ TLDR Speed-Brief: Daily Digest
+* **Lydfil:** `podcast/audio/tldr-briefing-2026-05-21.m4a` (AAC, 128 kbps, streambar)
+* **RSS Feed:** `https://viggo-1.github.io/brief/podcast/tldr_podcast.xml`
+* **Cover Art:** `https://viggo-1.github.io/brief/podcast/tldr_cover.png` (Vibrant orange/rødt Tech-tema)
+* **Status:** **Online & Klar**
 
-## 🤖 Fuldautomatisk Morgen-Rutin (Antigravity Cron)
-
-Jeg har oprettet og aktiveret en **Antigravity Planlagt Opgave (Cron)**, som orkestrerer det hele automatisk:
-* **Tidspunkt:** Hver morgen kl. **06:30** lokal dansk tid.
-* **Opgave:** Antigravity vågner automatisk, kører pipeline-kommandoen (`npm start`), henter den genererede podcast-lydfil fra NotebookLM, opdaterer dit RSS-feed lokalt, og skubber (pusher) ændringerne op til din GitHub, så de bliver serveret via din GitHub Pages.
-* **Hukommelse og login:** Processen bruger din personlige Google-konto (`viggoebbesen@gmail.com`) gennem den krypterede og gemte session i `auth_state.json`.
+### 3. ⏰ Automatisering
+* **Morgen-Cron:** Oprettet og aktiv i Antigravity-motoren. Den kører automatisk **hver morgen kl. 05:00 dansk tid (CEST)** for at hente, generere, konvertere og uploade dagens to briefings.
 
 ---
 
-## 📱 Sådan lytter du på din iPhone (Apple Podcasts)
+## 🛠️ Optimeringer foretaget i denne session
 
-Dagens test-episoder for begge podcasts er konverteret til M4A og ligger klar! Du kan tilføje dem uafhængigt til din iPhone:
-
-### Podcast 1: Executive Briefing (Tech & Strategy)
-Dybdegående, højt begavet strategisk analyse baseret på Techmeme, SemiAnalysis, Stratechery og Import AI.
-1. Åbn **Apple Podcasts**-appen.
-2. Gå til **Bibliotek** (Library) -> Tryk på de tre prikker `...` øverst til højre.
-3. Vælg **"Tilføj en podcast via URL..."** (Add a Podcast by URL...).
-4. Indtast din personlige Executive RSS-URL:
-   `https://viggo-1.github.io/brief/podcast/podcast.xml`
-5. Tryk på **Abonner** (Subscribe).
-
-### Podcast 2: TLDR Speed-Brief (Daily Digest)
-Koncis, hurtig og punktbaseret gennemgang af hele tech- og AI-nyhedsbilledet fra de rå TLDR nyhedsbreve.
-1. Åbn **Apple Podcasts**-appen.
-2. Gå til **Bibliotek** (Library) -> Tryk på de tre prikker `...` øverst til højre.
-3. Vælg **"Tilføj en podcast via URL..."** (Add a Podcast by URL...).
-4. Indtast din personlige TLDR RSS-URL:
-   `https://viggo-1.github.io/brief/podcast/tldr_podcast.xml`
-5. Tryk på **Abonner** (Subscribe).
-
-**Færdig!** Begge kanaler opdateres automatisk og uafhængigt af hinanden hver morgen kl. 06:30!
+1. **Sikkerhed i Playwright (`src/notebooklm.js`):**
+   * Rettede en fejl i Playwright-valg, hvor `isVisible({ timeout })` blev kaldt (hvilket ikke er understøttet i Playwright). Det er nu erstattet med en robust `waitFor({ state: 'visible', timeout: 5000 })` efterfulgt af en fejlsikker `isVisible()`-kontrol.
+2. **Udvidet Server-Resiliens:**
+   * Øgede den maksimale ventetid (`maxWaitTimeMs`) for NotebookLMs lydgenerering fra **15 to 25 minutter**. Dette sikrer, at pipelines ikke fejler på dage, hvor Googles servere er under høj belastning.
+3. **RSS Cover Art integration:**
+   * Opdaterede RSS-feeds til at pege direkte på dine lokalt genererede, professionelle branding-covers i stedet for de generiske Unsplash-placeholders.
 
 ---
 
-## 🔄 Vedligeholdelse & Fornyelse af Google Session
+## 🎨 Apple Podcasts: Guide til Design & Brugeroplevelse
 
-Google-sessioner (cookies) udløber typisk efter et par uger eller måneder. Hvis Antigravity melder om fejl i login næste måned, kan du forny sessionen super nemt uden at røre terminalen:
+Når du har tilføjet dine feeds til **Apple Podcasts Connect** (via [podcastsconnect.apple.com](https://podcastsconnect.apple.com)), har du rige muligheder for at tilpasse udseendet og lytteoplevelsen for at give et 100% premium og skræddersyet udtryk.
 
-1. Bed Antigravity om at køre: `npm run auth-refresh`.
-2. Chrome vil åbne på din skærm med Googles login-side.
-3. Klik på din konto `viggoebbesen@gmail.com`, indtast password/2FA, og så snart du er logget ind, **lukker vinduet sig selv og gemmer den nye session automatisk!**
+Her er et komplet overblik over dine tilpasningsmuligheder:
+
+### 1. Visuel Branding & Grafik
+Apple Podcasts bruger dit RSS-feeds coverbillede som det primære designelement, men i Apple Podcasts Connect kan du udvide dette markant:
+* **Kanalsider (Channels):** Hvis du samler begge podcasts under én fælles kanal (f.eks. "Viggo's Tech Briefings"), kan du uploade:
+  * **Kanal-logo:** Et gennemsigtigt PNG-logo (3000 x 3000px), der placeres elegant over en farvet baggrund.
+  * **Banner-grafik (Hero Banner):** Et widescreen-billede (mindst 4000 x 3000px, 16:9 safe zone), som vises øverst på din kanalside på iPhone, iPad og Mac. Dette skaber en fantastisk "wow-effekt" med et professionelt, integreret udseende.
+  * **Baggrundsfarve:** Du kan vælge en specifik hex-kode (f.eks. en sleek mørk farve eller dyb natblå), som appen bruger til at tone hele kanalsiden.
+
+### 2. Tekst, Metadata & Struktur
+* **HTML & Rich Text Show Notes:** 
+  * Apple Podcasts understøtter nu fuldt ud basale HTML-tags i din `<description>` (såsom `<b>`, `<i>`, `<ul>`, `<ol>`, `<li>` og især `<a href="...">`).
+  * Du kan bruge dette til at lave klikbare links direkte til de kilder, som Gemini opsummerer (f.eks. direkte links til dagens TLDR Tech- og AI-artikler), samt pæne punktopstillinger.
+* **Sæson- og Episodenumre:**
+  * RSS-feedet er forberedt til `<itunes:episodeType>`. Du kan indstille episoderne som `full` (almindelige episoder), `trailer` (introduktion) eller `bonus`.
+  * Du kan også tildele sæsonnumre for at strukturere dine ugentlige eller månedlige arkiver.
+
+### 3. Brugeroplevelse & Lytte-Indstillinger
+* **Automatiske Transskriptioner:**
+  * Apple genererer automatisk transskriptioner af dine episoder på sprog som engelsk, spansk, fransk og tysk. Da dine podcasts genereres på engelsk af NotebookLM, vil Apple Podcasts **helt automatisk oprette præcise undertekster** og søgbare transskriptioner inden for få timer efter udgivelse.
+  * Lyttere kan trykke på ikonet "Transskription" i nederste venstre hjørne på deres iPhone for at læse med i realtid, søge efter specifikke ord eller trykke på en tekstlinje for at hoppe direkte til det tidspunkt i lyden.
+* **Afspilningsrækkefølge:**
+  * Da dette er en daglig nyhedspodcast, bør du sikre dig, at din podcasttype i Connect/RSS is sat til `episodic`. Dette sikrer, at Apple Podcasts altid viser og afspiller den **nyeste episode først** for brugeren, frem for at starte fra bunden af arkivet.
+
+### 4. Apple Podcasts Subscriptions (Premium-oplevelse)
+Selvom feedsene i dag er private RSS-feeds via GitHub Pages, kan du via Apple Podcasts Connect oprette betalte eller eksklusive abonnementsmuligheder:
+* **Eksklusiv adgang:** Lave en abonnementskanal, hvor visse episodeserier (f.eks. de dybe Executive-analyser) kun er tilgængelige for godkendte abonnenter eller medlemmer.
+* **Gratis prøveperioder:** Give folk adgang til din TLDR Speed-Brief gratis, men kræve abonnement for det fulde vidensniveau i Executive Briefing.
+
+---
+
+## 🚀 Næste Skridt for dig
+Du behøver ikke gøre noget teknisk nu! Alt kører fuldt automatiseret. 
+
+1. **Abonner på feedsene på din iPhone:**
+   * **Executive Briefing:** `https://viggo-1.github.io/brief/podcast/podcast.xml`
+   * **TLDR Speed-Brief:** `https://viggo-1.github.io/brief/podcast/tldr_podcast.xml`
+2. **Kig forbi Apple Podcasts Connect:**
+   * Log ind på [podcastsconnect.apple.com](https://podcastsconnect.apple.com) med dit Apple ID.
+   * Tilføj de to RSS-adresser som nye podcasts.
+   * Upload de to tilhørende custom covers (`executive_cover.png` og `tldr_cover.png`) for at fuldende den premium visuelle oplevelse.
