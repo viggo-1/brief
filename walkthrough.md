@@ -2,7 +2,7 @@
 
 Dette projekt er nu **fuldt implementeret, testet og automatiseret** direkte på din Mac i mappen `/Users/viggo/Desktop/code/brief`.
 
-I stedet for en kompleks opsætning i skyen, kører løsningen som et intelligent, lokalt **AI-agent-flow** orkestreret af Antigravity. Hver morgen scraper agenten de nyeste teknologi- og AI-nyheder, opsummerer dem via Gemini, uploader dem til NotebookLM for at generere en spændende 2-værts podcast, og skubber resultatet op til din GitHub Pages, så du kan lytte direkte i **Apple Podcasts** på din iPhone!
+I stedet for en kompleks opsætning i skyen, kører løsningen som et intelligent, lokalt **AI-agent-flow** orkestreret af Antigravity. Hver morgen scraper agenten de nyeste teknologi- og AI-nyheder, opsummerer dem via Gemini med et ultra-præcist executive vidensniveau, uploader dem til NotebookLM for at generere en 2-værts podcast, konverterer lydfilen til streambar **M4A (AAC)**, og skubber resultatet op til din GitHub Pages, så du kan lytte fejlfrit i **Apple Podcasts** på din iPhone!
 
 ---
 
@@ -10,13 +10,13 @@ I stedet for en kompleks opsætning i skyen, kører løsningen som et intelligen
 
 De vigtigste komponenter i dit projekt er:
 
-1. **src/notebooklm.js**: Browser-agenten, der genindlæser din Google-session, uploader briefingen til NotebookLM, genererer den to-værts podcast og downloader lydfilen via den opdaterede 2026 tre-punkts dropdown-menu (`.artifact-more-button`).
+1. **src/notebooklm.js**: Browser-agenten, der genindlæser din Google-session, uploader briefingen til NotebookLM, genererer den to-værts podcast og downloader lydfilen som en højopløselig `.wav` via den opdaterede tre-punkts dropdown-menu (`.artifact-more-button`).
 2. **src/tldr-scraper.js**: Scraperen, der henter de nyeste udgaver af TLDR Tech og TLDR AI direkte fra de offentlige arkiver (hvilket fuldstændig fjerner behovet for komplekse Gmail API-nøgler og godkendelser!).
-3. **src/summarizer.js**: Gemini-agenten (`gemini-2.5-flash`), der konsoliderer og oversætter nyhederne til en professionel engelsk briefing optimeret til NotebookLM.
-4. **src/podcast.js**: Organiserer dine lydfiler under `podcast/audio/` og bygger et fuldt ud kompatibelt RSS-feed (`podcast.xml`) med **100% historisk bevarelse** af alle tidligere episoder.
+3. **src/summarizer.js**: Gemini-agenten (`gemini-2.5-flash`), der konsoliderer og strukturerer nyhederne til en ultra-præcis, højt begavet executive-briefing optimeret til NotebookLM. Den antager fuld forhåndsviden og undgår banale forklaringer, hvilket tvinger NotebookLM-værterne til at tale på et strategisk CEO/CTO-niveau.
+4. **src/podcast.js**: Konverterer automatisk `.wav` filerne til streambare `.m4a` (AAC ved 128kbps) via macOS afconvert, og opdaterer `podcast.xml` (RSS-feedet) med **100% historisk bevarelse** af alle tidligere episoder.
 5. **scripts/auth-refresh.js**: Vores semi-automatiserede fornyer, som lader dig forny din Google-session med ét enkelt klik på skærmen uden at bruge terminalen.
-6. **podcast/podcast.xml**: RSS-feedet, som indlæses af Apple Podcasts.
-7. **podcast/audio/**: Mappen, hvor alle dine historiske lydfiler bevares (og aldrig slettes eller beskres).
+6. **podcast/podcast.xml**: RSS-feedet, som indlæses af Apple Podcasts (nu med streambare `.m4a` referencer).
+7. **podcast/audio/**: Mappen, hvor alle dine historiske lydfiler bevares som streambare `.m4a` filer.
 
 ---
 
