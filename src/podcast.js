@@ -7,6 +7,7 @@ dotenv.config();
 
 const PODCAST_DIR = path.join(process.cwd(), 'podcast');
 const AUDIO_DIR = path.join(PODCAST_DIR, 'audio');
+const OUTPUT_DIR = path.join(process.cwd(), 'output');
 
 // Opret mapper hvis de ikke findes
 if (!fs.existsSync(PODCAST_DIR)) {
@@ -60,14 +61,19 @@ export async function addEpisodeToPodcast(tempAudioPath, dateString, type = 'exe
       mimeType = 'audio/wav';
     }
   } else {
-    // Hvis filen allerede er f.eks. .mp3
+    // Hvis filen allerede er f.eks. .mp3 eller .m4a
     const finalExt = ext || '.mp3';
     finalFilename = `${prefix}-${dateString}${finalExt}`;
     finalAudioPath = path.join(AUDIO_DIR, finalFilename);
-    mimeType = finalExt === '.mp3' ? 'audio/mpeg' : 'audio/wav';
+    mimeType = finalExt === '.mp3' ? 'audio/mpeg' : (finalExt === '.m4a' ? 'audio/x-m4a' : 'audio/wav');
     
-    fs.copyFileSync(tempAudioPath, finalAudioPath);
-    console.log(`[Podcast - ${type.toUpperCase()}] Lydfil kopieret uden konvertering til: ${finalAudioPath}`);
+    // Hvis kilde og destination er forskellige, kopier filen
+    if (tempAudioPath !== finalAudioPath) {
+      fs.copyFileSync(tempAudioPath, finalAudioPath);
+      console.log(`[Podcast - ${type.toUpperCase()}] Lydfil kopieret uden konvertering til: ${finalAudioPath}`);
+    } else {
+      console.log(`[Podcast - ${type.toUpperCase()}] Lydfil er allerede på destinationen: ${finalAudioPath}`);
+    }
   }
 
   // Få filstørrelse i bytes (kræves af podcast RSS standarden)
@@ -96,10 +102,72 @@ export async function addEpisodeToPodcast(tempAudioPath, dateString, type = 'exe
   const pubDate = new Date().toUTCString();
   const guid = `brief-${type}-${dateString}-${Math.random().toString(36).substr(2, 9)}`;
 
+  // Læs markdown filen hvis den findes og konverter til rige HTML show notes
+  let richDescription = description;
+  const markdownFilename = type === 'tldr' ? `tldr-briefing-${dateString}.md` : `briefing-${dateString}.md`;
+  const markdownPath = path.join(OUTPUT_DIR, markdownFilename);
+  
+  if (fs.existsSync(markdownPath)) {
+    console.log(`[Podcast - ${type.toUpperCase()}] Indlæser markdown briefing til show notes: ${markdownPath}`);
+    try {
+      const mdContent = fs.readFileSync(markdownPath, 'utf8');
+      const lines = mdContent.split('\n');
+      let htmlContent = '';
+      let inList = false;
+      
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('#')) {
+          const titleText = trimmed.replace(/^#+\s*/, '');
+          htmlContent += `<h2>${titleText}</h2>`;
+        } else if (trimmed.startsWith('*') || trimmed.startsWith('-')) {
+          if (!inList) {
+            htmlContent += '<ul>';
+            inList = true;
+          }
+          let liText = trimmed.replace(/^[\*\-]\s*/, '');
+          // Erstat ** med <b> og </b>
+          liText = liText.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+          // Escape enhver literal & i teksten
+          liText = liText.replace(/&/g, '&amp;');
+          htmlContent += `<li>${liText}</li>`;
+        } else if (trimmed === '' || trimmed === '---') {
+          if (inList) {
+            htmlContent += '</ul>';
+            inList = false;
+          }
+          if (trimmed === '---') {
+            htmlContent += '<hr />';
+          }
+        } else {
+          if (inList) {
+            htmlContent += '</ul>';
+            inList = false;
+          }
+          // Overskrift eller sektionsdeler?
+          if (trimmed.match(/^[⚡🌐🤖💻🚀📈]/)) {
+            htmlContent += `<h3>${trimmed.replace(/&/g, '&amp;')}</h3>`;
+          } else {
+            htmlContent += `<p>${trimmed.replace(/&/g, '&amp;')}</p>`;
+          }
+        }
+      }
+      if (inList) {
+        htmlContent += '</ul>';
+      }
+      if (htmlContent.trim().length > 0) {
+        richDescription = htmlContent;
+      }
+    } catch (e) {
+      console.warn('Kunne ikke generere HTML show notes fra markdown:', e);
+    }
+  }
+
   // Opret det nye podcast-element (episode)
   const newEpisodeItem = `    <item>
       <title>${type === 'tldr' ? 'TLDR Speed-Brief' : 'Executive Briefing'} - ${dateString}</title>
-      <description>${description}</description>
+      <description><![CDATA[${richDescription}]]></description>
+      <content:encoded><![CDATA[${richDescription}]]></content:encoded>
       <pubDate>${pubDate}</pubDate>
       <enclosure url="${audioFileUrl}" length="${fileSizeInBytes}" type="${mimeType}" />
       <guid isPermaLink="false">${guid}</guid>
