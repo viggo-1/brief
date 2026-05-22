@@ -126,6 +126,21 @@ export async function generatePodcast(briefingText, dateString) {
       page.locator('text=/Copied text|Paste text|Kopieret|Indsæt/i')
     ).first();
     
+    // Tjek om kilde-popupen er synlig, ellers klik på "+ Tilføj kilder" knappen
+    const isSourceModalVisible = await copiedTextOption.isVisible().catch(() => false);
+    if (!isSourceModalVisible) {
+      console.log('Kilde-popup vises ikke automatisk. Klikker på "+ Tilføj kilder" knappen...');
+      const addSourcesBtn = page.locator('button, [role="button"], a').filter({
+        hasText: /Tilføj kilder|Add sources|Tilføj kilde|Add source/i
+      }).or(
+        page.locator('text=/Tilføj kilder|Add sources/i')
+      ).first();
+      
+      await addSourcesBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+      await addSourcesBtn.click();
+      await page.waitForTimeout(2000);
+    }
+    
     await copiedTextOption.waitFor({ state: 'visible' });
     await copiedTextOption.click();
     await saveDebugScreenshot(page, '03_copied_text_modal');
