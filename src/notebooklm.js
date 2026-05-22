@@ -57,6 +57,7 @@ export async function generatePodcast(briefingText, dateString) {
     console.log('[NotebookLM] Venter på at dashboardet eller login-siden indlæses...');
     const dashboardSelector = page.locator('text=/New notebook|Create notebook|Opret/i').first();
     const loginPageSelector = page.locator('[data-email="viggoebbesen@gmail.com"], text="viggoebbesen@gmail.com", text="Sign in", button:has-text("Sign in")').first();
+    const accountSelector = page.locator('[data-email="viggoebbesen@gmail.com"], text="viggoebbesen@gmail.com"').first();
     
     await Promise.any([
       dashboardSelector.waitFor({ state: 'visible', timeout: 15000 }),
